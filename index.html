@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScriptForge AI - Commercial Generator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b0f19; color: #f8fafc; padding: 20px; }
+        .card { max-width: 520px; margin: 30px auto; background: #111827; border-radius: 16px; padding: 28px; border: 1px solid #1f2937; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
+        h1 { font-size: 1.75rem; color: #38bdf8; text-align: center; margin-bottom: 24px; font-weight: 700; }
+        label { font-size: 0.9rem; color: #9ca3af; display: block; margin-bottom: 8px; }
+        input, select, button { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #374151; background: #1f2937; color: #fff; font-size: 1rem; margin-bottom: 20px; outline: none; }
+        input:focus, select:focus { border-color: #38bdf8; }
+        button { background: linear-gradient(135deg, #0284c7, #2563eb); border: none; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        #output { background: #0b0f19; border: 1px solid #374151; padding: 18px; border-radius: 10px; white-space: pre-line; display: none; line-height: 1.6; color: #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>⚡ ScriptForge AI</h1>
+        <label>Vishay / Story Idea:</label>
+        <input type="text" id="topic" placeholder="Eg. Pyramids aani time machine...">
+        
+        <label>Prakar (Genre):</label>
+        <select id="genre">
+            <option value="Sci-Fi Suspense">Sci-Fi & Suspense</option>
+            <option value="Horror Mystery">Horror & Mystery</option>
+            <option value="Fact / Mind-blowing">Mind-blowing Facts</option>
+        </select>
+
+        <button onclick="generateScript()">Script Generate Kara</button>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        async function generateScript() {
+            const topic = document.getElementById('topic').value;
+            const genre = document.getElementById('genre').value;
+            const output = document.getElementById('output');
+
+            if (!topic) { alert("Krupaya vishay liha!"); return; }
+
+            output.style.display = "block";
+            output.innerText = "⏳ ScriptForge AI tumchi script tayar karat aahe...";
+
+            try {
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, genre })
+                });
+                const data = await res.json();
+                output.innerText = data.script;
+            } catch (err) {
+                output.innerText = "Server shi sampark hou shakla nahi. Punha prayatna kara.";
+            }
+        }
+    </script>
+</body>
+</html>
