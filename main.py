@@ -1,39 +1,97 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="ScriptForge AI Engine")
 
 class ScriptRequest(BaseModel):
     topic: str
-    genre: str = "Sci-Fi Suspense"
+    platform: str = "Instagram Reel"
+    tone: str = "Suspenseful"
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def home():
-    return {"status": "ScriptForge AI Engine is Live"}
+    return """
+    <!DOCTYPE html>
+    <html lang="mr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ScriptForge AI</title>
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; display: flex; justify-content: center; }
+            .container { max-width: 600px; width: 100%; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+            h1 { text-align: center; color: #38bdf8; margin-bottom: 20px; }
+            label { font-weight: bold; margin-top: 10px; display: block; color: #94a3b8; }
+            input, select, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box; font-size: 16px; }
+            button { background: #0284c7; font-weight: bold; border: none; margin-top: 20px; cursor: pointer; transition: 0.3s; }
+            button:hover { background: #0369a1; }
+            .result-box { margin-top: 25px; background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🎬 ScriptForge AI</h1>
+            <label for="topic">विषय / Topic:</label>
+            <input type="text" id="topic" placeholder="उदा. Time Travel Story in Marathi...">
+            
+            <label for="platform">प्लॅटफॉर्म / Platform:</label>
+            <select id="platform">
+                <option value="Instagram Reel">Instagram Reel</option>
+                <option value="YouTube Shorts">YouTube Shorts</option>
+            </select>
+
+            <label for="tone">टोन / Tone:</label>
+            <select id="tone">
+                <option value="Suspenseful">Suspenseful</option>
+                <option value="Dramatic">Dramatic</option>
+                <option value="Sci-Fi">Sci-Fi</option>
+            </select>
+
+            <button onclick="generateScript()">🚀 Generate Script</button>
+
+            <div id="result" class="result-box" style="display:none;"></div>
+        </div>
+
+        <script>
+            async function generateScript() {
+                const topic = document.getElementById('topic').value;
+                const platform = document.getElementById('platform').value;
+                const tone = document.getElementById('tone').value;
+                const resultDiv = document.getElementById('result');
+
+                if (!topic) { alert("कृपया विषय टाका!"); return; }
+
+                resultDiv.style.display = "block";
+                resultDiv.innerHTML = "⏳ AI स्क्रीप्ट तयार होत आहे...";
+
+                try {
+                    const response = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ topic, platform, tone })
+                    });
+                    const data = await response.json();
+                    resultDiv.innerHTML = "<strong>✨ तयार झालेली स्क्रीप्ट:</strong><br><br>" + data.script;
+                } catch (err) {
+                    resultDiv.innerHTML = "❌ काहीतरी चूक झाली. पुन्हा प्रयत्न करा.";
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
 
 @app.post("/api/generate")
-async def generate_script(req: ScriptRequest):
-    script_output = f"""
---- 🎬 SCRIPTFORGE PRO GENERATED SCRIPT ---
-TOPIC: {req.topic}
-GENRE: {req.genre}
-
-[Visual: Dark cinematic shot with glowing lights]
-VOICEOVER: What if the story behind '{req.topic}' is not what you think?
-
-[Visual: Fast cuts of mysterious shadows and high tension scenes]
-VOICEOVER: In a reality governed by hidden rules, one discovery changed everything.
-
-[Visual: Dramatic zoom-in on the main character]
-VOICEOVER: Stay tuned as we unravel the truth. Subscribe for Part 2!
--------------------------------------------
-"""
-    return {"status": "success", "script": script_output}
+def generate_script(req: ScriptRequest):
+    generated_text = f"🎬 --- SCRIPTFORGE PRO GENERATED SCRIPT ---\n"
+    generated_text += f"📌 TOPIC: {req.topic}\n"
+    generated_text += f"🎭 GENRE: {req.tone} | 📱 PLATFORM: {req.platform}\n\n"
+    generated_text += f"[Visual: Dark cinematic shot with glowing lights]\n"
+    generated_text += f"VOICEOVER: What if the story behind '{req.topic}' is not what you think?\n\n"
+    generated_text += f"[Visual: Fast cuts of mysterious shadows and high tension scenes]\n"
+    generated_text += f"VOICEOVER: In a reality governed by hidden rules, one discovery changed everything.\n\n"
+    generated_text += f"[Visual: Dramatic zoom-in on the main character]\n"
+    generated_text += f"VOICEOVER: Stay tuned as we unravel the truth. Subscribe for Part 2!"
+    
+    return {"status": "success", "script": generated_text}
