@@ -8,6 +8,7 @@ class ScriptRequest(BaseModel):
     topic: str
     platform: str = "Instagram Reel"
     tone: str = "Suspenseful"
+    language: str = "Marathi"
 
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -33,8 +34,14 @@ def home():
         <div class="container">
             <h1>🎬 ScriptForge AI</h1>
             <label for="topic">विषय / Topic:</label>
-            <input type="text" id="topic" placeholder="उदा. Time Travel Story in Marathi...">
+            <input type="text" id="topic" placeholder="उदा. भयाण रात्र, टाइम ट्रॅव्हल...">
             
+            <label for="language">भाषा / Language:</label>
+            <select id="language">
+                <option value="Marathi">मराठी (Marathi)</option>
+                <option value="English">English</option>
+            </select>
+
             <label for="platform">प्लॅटफॉर्म / Platform:</label>
             <select id="platform">
                 <option value="Instagram Reel">Instagram Reel</option>
@@ -43,9 +50,9 @@ def home():
 
             <label for="tone">टोन / Tone:</label>
             <select id="tone">
-                <option value="Suspenseful">Suspenseful</option>
-                <option value="Dramatic">Dramatic</option>
-                <option value="Sci-Fi">Sci-Fi</option>
+                <option value="Suspenseful">Suspenseful (रहस्यमयी)</option>
+                <option value="Dramatic">Dramatic (ड्रामा)</option>
+                <option value="Sci-Fi">Sci-Fi (विज्ञानपट)</option>
             </select>
 
             <button onclick="generateScript()">🚀 Generate Script</button>
@@ -58,6 +65,7 @@ def home():
                 const topic = document.getElementById('topic').value;
                 const platform = document.getElementById('platform').value;
                 const tone = document.getElementById('tone').value;
+                const language = document.getElementById('language').value;
                 const resultDiv = document.getElementById('result');
 
                 if (!topic) { alert("कृपया विषय टाका!"); return; }
@@ -69,7 +77,7 @@ def home():
                     const response = await fetch('/api/generate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ topic, platform, tone })
+                        body: JSON.stringify({ topic, platform, tone, language })
                     });
                     const data = await response.json();
                     resultDiv.innerHTML = "<strong>✨ तयार झालेली स्क्रीप्ट:</strong><br><br>" + data.script;
@@ -84,14 +92,25 @@ def home():
 
 @app.post("/api/generate")
 def generate_script(req: ScriptRequest):
-    generated_text = f"🎬 --- SCRIPTFORGE PRO GENERATED SCRIPT ---\n"
-    generated_text += f"📌 TOPIC: {req.topic}\n"
-    generated_text += f"🎭 GENRE: {req.tone} | 📱 PLATFORM: {req.platform}\n\n"
-    generated_text += f"[Visual: Dark cinematic shot with glowing lights]\n"
-    generated_text += f"VOICEOVER: What if the story behind '{req.topic}' is not what you think?\n\n"
-    generated_text += f"[Visual: Fast cuts of mysterious shadows and high tension scenes]\n"
-    generated_text += f"VOICEOVER: In a reality governed by hidden rules, one discovery changed everything.\n\n"
-    generated_text += f"[Visual: Dramatic zoom-in on the main character]\n"
-    generated_text += f"VOICEOVER: Stay tuned as we unravel the truth. Subscribe for Part 2!"
+    if req.language == "Marathi":
+        generated_text = f"🎬 --- SCRIPTFORGE PRO GENERATED SCRIPT ---\n"
+        generated_text += f"📌 विषय: {req.topic}\n"
+        generated_text += f"🎭 टोन: {req.tone} | 📱 प्लॅटफॉर्म: {req.platform}\n\n"
+        generated_text += f"[दृश्य: अंधारात चमकणारे लाईट्स आणि डार्क सिनेमॅटिक शॉट]\n"
+        generated_text += f"वॉइसओव्हर: 'काय वाटतं? {req.topic} या गोष्टीमागे दडलेलं सत्य आपल्याला जे दिसतं तेच आहे की अजून काही रहस्य आहे...?'\n\n"
+        generated_text += f"[दृश्य: वेगाने बदलणारे रहस्यमयी चेहरे, सावल्या आणि हाय-टेंशन सीन]\n"
+        generated_text += f"वॉइसओव्हर: 'अदृश्य नियमांवर चालणाऱ्या या जगात, एका अनपेक्षित घटनेने सगळंच बदलून टाकलं...'\n\n"
+        generated_text += f"[दृश्य: मुख्य पात्रावर कॅमेरा झूम-इन होतो]\n"
+        generated_text += f"वॉइसओव्हर: 'पूर्ण सत्य जाणून घेण्यासाठी फॉलो आणि सबस्क्राईब करायला विसरू नका!'"
+    else:
+        generated_text = f"🎬 --- SCRIPTFORGE PRO GENERATED SCRIPT ---\n"
+        generated_text += f"📌 TOPIC: {req.topic}\n"
+        generated_text += f"🎭 GENRE: {req.tone} | 📱 PLATFORM: {req.platform}\n\n"
+        generated_text += f"[Visual: Dark cinematic shot with glowing lights]\n"
+        generated_text += f"VOICEOVER: What if the story behind '{req.topic}' is not what you think?\n\n"
+        generated_text += f"[Visual: Fast cuts of mysterious shadows and high tension scenes]\n"
+        generated_text += f"VOICEOVER: In a reality governed by hidden rules, one discovery changed everything.\n\n"
+        generated_text += f"[Visual: Dramatic zoom-in on the main character]\n"
+        generated_text += f"VOICEOVER: Stay tuned as we unravel the truth. Subscribe for Part 2!"
     
     return {"status": "success", "script": generated_text}
