@@ -27,6 +27,10 @@ class ScriptRequest(BaseModel):
     language: str = "Marathi"
     target_country: str = "India"
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.post("/api/generate")
 async def generate_script(request: ScriptRequest):
     if not GEMINI_API_KEY:
@@ -59,4 +63,5 @@ async def generate_script(request: ScriptRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+if os.path.exists("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
