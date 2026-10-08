@@ -126,21 +126,17 @@ async def generate_script(request: ScriptRequest):
     if not GEMINI_API_KEY:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not set.")
 
-    # उपलब्ध मॉडेल्सपैकी जे काम करेल ते आपोआप सेलेक्ट होईल
-    working_model = None
-    model_candidates = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
-    
-    for candidate in model_candidates:
-        try:
-            m = genai.GenerativeModel(candidate)
-            # लहान टेस्ट जनरेशन करून मॉडेल व्हॅलिडेट करतो
-            working_model = m
-            break
-        except Exception:
-            continue
+    # API key ने सपोर्ट केलेल्या मॉडेल्सची ऑटोमॅटिक लिस्ट चेक करून पहिले वर्किंग मॉडेल वापरेल
+    selected_model = None
+    try:
+        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        if available_models:
+            selected_model = genai.GenerativeModel(available_models[0].replace("models/", ""))
+    except Exception:
+        pass
 
-    if not working_model:
-        working_model = genai.GenerativeModel('gemini-2.5-flash')
+    if not selected_model:
+        selected_model = genai.GenerativeModel('gemini-1.5-flash')
 
     try:
         prompt = f"""
@@ -161,7 +157,7 @@ async def generate_script(request: ScriptRequest):
         🎯 [CALL TO ACTION]
         """
         
-        response = working_model.generate_content(prompt)
+        response = selected_model.generate_content(prompt)
         return {"status": "success", "data": response.text}
 
     except Exception as e:
