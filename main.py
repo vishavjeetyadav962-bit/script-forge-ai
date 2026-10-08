@@ -174,8 +174,8 @@ async def generate_script(request: GlobalVideoRequest):
     if not GEMINI_API_KEY:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY missing in Render settings.")
 
-    # ट्राय-कॅच मॉडेल फॉलबॅक (एकापेक्षा जास्त मॉडेल नावे चेक करेल)
-    models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']
+    # २०२६ मध्ये सक्रिय असणारे नवीन मॉडेल्स
+    models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest']
     response = None
     last_error = None
 
@@ -214,7 +214,7 @@ async def generate_script(request: GlobalVideoRequest):
 
     script_text = response.text
 
-    # Audio Generation
+    # Voiceover Generation
     audio_filename = f"global_voice_{uuid.uuid4().hex[:8]}.mp3"
     communicate = edge_tts.Communicate(script_text[:1200], request.accent_voice)
     await communicate.save(audio_filename)
