@@ -1,8 +1,10 @@
 import os
+import uuid
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
+import edge_tts
 import google.generativeai as genai
 
 app = FastAPI()
@@ -20,12 +22,11 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-class ScriptRequest(BaseModel):
-    source: str = "Google Trends"
+class GlobalVideoRequest(BaseModel):
+    niche: str = "AI & Future Tech"
     topic: str
-    format_type: str = "Shorts"
-    language: str = "Marathi"
-    target_country: str = "India"
+    target_country: str = "United States"
+    accent_voice: str = "US Male (Christopher)"
 
 @app.get("/health")
 async def health_check():
@@ -35,69 +36,77 @@ async def health_check():
 async def read_root():
     return """
     <!DOCTYPE html>
-    <html lang="mr">
+    <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ScriptForge AI</title>
+        <title>Global Shorts Engine $</title>
         <style>
-            body { font-family: Arial, sans-serif; background-color: #121212; color: #fff; padding: 20px; max-width: 600px; margin: auto; }
-            h1 { color: #00e676; text-align: center; }
-            label { display: block; margin-top: 15px; font-weight: bold; }
-            input, select, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: none; box-sizing: border-box; }
-            input, select { background: #222; color: #fff; border: 1px solid #444; font-size: 15px; }
-            button { background: #00e676; color: #000; font-weight: bold; cursor: pointer; margin-top: 25px; font-size: 16px; }
-            button:hover { background: #00c853; }
-            #output { margin-top: 20px; background: #1e1e1e; padding: 15px; border-radius: 6px; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #333; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d0f12; color: #e0e6ed; padding: 20px; max-width: 700px; margin: auto; }
+            h1 { color: #00e676; text-align: center; font-size: 28px; }
+            p.subtitle { text-align: center; color: #8b949e; margin-top: -10px; font-size: 14px; }
+            .card { background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+            label { display: block; margin-top: 15px; font-weight: 600; color: #58a6ff; }
+            input, select, button { width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #30363d; box-sizing: border-box; font-size: 15px; }
+            input, select { background: #0d1117; color: #c9d1d9; }
+            button { background: linear-gradient(135deg, #00e676, #00b0ff); color: #000; font-weight: bold; cursor: pointer; margin-top: 25px; font-size: 16px; border: none; transition: 0.3s; }
+            button:hover { opacity: 0.9; }
+            #output { margin-top: 20px; background: #0d1117; padding: 18px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #30363d; font-family: monospace; }
+            audio { width: 100%; margin-top: 15px; }
         </style>
     </head>
     <body>
-        <h1>🚀 ScriptForge AI</h1>
-        
-        <label>डाटा सोर्स (Data Source)</label>
-        <select id="source">
-            <option>Google Trends</option>
-            <option>Reddit</option>
-            <option>Wikipedia</option>
-        </select>
-        
-        <label>विषय / टॉपिक (Topic)</label>
-        <input type="text" id="topic" placeholder="उदा. AI News, Sci-Fi Mystery">
-        
-        <label>व्हिडिओ फॉरमॅट (Format)</label>
-        <select id="format_type">
-            <option>Shorts</option>
-            <option>Long-Form</option>
-        </select>
+        <h1>🌐 Global Faceless Video Engine</h1>
+        <p class="subtitle">Generate High-CPM Dollar Shorts for US / Worldwide Audience</p>
 
-        <label>भाषा (Language)</label>
-        <select id="language">
-            <option>Marathi</option>
-            <option>English</option>
-            <option>Hindi</option>
-        </select>
+        <div class="card">
+            <label>High-CPM Category (विषय प्रकार)</label>
+            <select id="niche">
+                <option>AI & Future Tech</option>
+                <option>Dark Psychology & Mysteries</option>
+                <option>True Crime Stories</option>
+                <option>Finance & Wealth Mindset</option>
+                <option>Space & Universe Secrets</option>
+            </select>
+            
+            <label>Video Concept / Topic (मूळ विषय)</label>
+            <input type="text" id="topic" placeholder="e.g. What happens if Earth stops spinning for 5 seconds?">
+            
+            <label>Target Audience (लक्ष्य देश)</label>
+            <select id="target_country">
+                <option>United States (High CPM $)</option>
+                <option>United Kingdom</option>
+                <option>Canada / Australia</option>
+                <option>Worldwide / Global</option>
+            </select>
 
-        <label>टार्गेट देश (Target Region)</label>
-        <select id="target_country">
-            <option>India</option>
-            <option>USA/UK</option>
-        </select>
+            <label>AI Voice Accent (परदेशी आवाज)</label>
+            <select id="accent_voice">
+                <option value="en-US-ChristopherNeural">US Male (Deep & Engaging)</option>
+                <option value="en-US-AvaNeural">US Female (Clear & Viral)</option>
+                <option value="en-GB-RyanNeural">UK Male (Narrative British)</option>
+                <option value="en-GB-SoniaNeural">UK Female (Sophisticated British)</option>
+            </select>
 
-        <button onclick="generateScript()">⚡ ऑल-इन-वन डेटा जनरेट करा</button>
+            <button onclick="generateGlobalContent()">⚡ Generate Worldwide Script & Audio</button>
+        </div>
 
-        <div id="output">तुमची जनरेट झालेली स्क्रिप्ट इथे दिसेल...</div>
+        <div id="output">तुमचा जागतिक स्तरावरील स्क्रिप्ट आणि अमेरिकन/ब्रिटिश ऑडिओ व्हॉईस इथे जनरेट होईल...</div>
+        <audio id="audioPlayer" controls style="display:none;"></audio>
 
         <script>
-            async function generateScript() {
+            async function generateGlobalContent() {
                 const outputDiv = document.getElementById('output');
-                outputDiv.innerText = 'स्क्रिप्ट जनरेट होत आहे... कृपया थोडा वेळ थांबा...';
+                const audioPlayer = document.getElementById('audioPlayer');
+                
+                outputDiv.innerText = '🚀 Generating High-CPM Viral Script & Native US/UK Audio Voice... Please wait 10 seconds...';
+                audioPlayer.style.display = 'none';
                 
                 const body = {
-                    source: document.getElementById('source').value,
+                    niche: document.getElementById('niche').value,
                     topic: document.getElementById('topic').value,
-                    format_type: document.getElementById('format_type').value,
-                    language: document.getElementById('language').value,
-                    target_country: document.getElementById('target_country').value
+                    target_country: document.getElementById('target_country').value,
+                    accent_voice: document.getElementById('accent_voice').value
                 };
 
                 try {
@@ -107,13 +116,18 @@ async def read_root():
                         body: JSON.stringify(body)
                     });
                     const data = await res.json();
+                    
                     if (data.data) {
                         outputDiv.innerText = data.data;
+                        if (data.audio_url) {
+                            audioPlayer.src = data.audio_url;
+                            audioPlayer.style.display = 'block';
+                        }
                     } else {
-                        outputDiv.innerText = 'एरर आला: ' + JSON.stringify(data);
+                        outputDiv.innerText = 'Error: ' + (data.detail || JSON.stringify(data));
                     }
                 } catch (e) {
-                    outputDiv.innerText = 'स्क्रिप्ट जनरेट झाली नाही: ' + e;
+                    outputDiv.innerText = 'Generation failed: ' + e;
                 }
             }
         </script>
@@ -122,43 +136,53 @@ async def read_root():
     """
 
 @app.post("/api/generate")
-async def generate_script(request: ScriptRequest):
+async def generate_script(request: GlobalVideoRequest):
     if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not set.")
-
-    # API key ने सपोर्ट केलेल्या मॉडेल्सची ऑटोमॅटिक लिस्ट चेक करून पहिले वर्किंग मॉडेल वापरेल
-    selected_model = None
-    try:
-        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        if available_models:
-            selected_model = genai.GenerativeModel(available_models[0].replace("models/", ""))
-    except Exception:
-        pass
-
-    if not selected_model:
-        selected_model = genai.GenerativeModel('gemini-1.5-flash')
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY missing in Render settings.")
 
     try:
-        prompt = f"""
-        You are an advanced viral video automation assistant.
-        Generate a complete content package based on:
-        - Data Source: {request.source}
-        - Topic: {request.topic}
-        - Video Type: {request.format_type}
-        - Language: {request.language}
-        - Target Audience Region: {request.target_country}
-
-        Provide the output formatted with clear headers in {request.language}:
-        📌 [TITLE & SEO TAGS] (Catchy YouTube title + 5 viral hashtags)
-        ⏰ [BEST UPLOADING TIME] (Optimal posting time for {request.target_country})
-        🔥 [HOOK] (First 3 seconds)
-        📖 [FULL SCRIPT / STORY] (Structured narrative)
-        🎬 [STOCK FOOTAGE PROMPTS] (Detailed visual prompts for editing tools)
-        🎯 [CALL TO ACTION]
-        """
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
-        response = selected_model.generate_content(prompt)
-        return {"status": "success", "data": response.text}
+        prompt = f"""
+        You are an expert viral content strategist targeting a worldwide high-CPM audience ({request.target_country}).
+        Create a high-retention video package for Youtube Shorts and Instagram Reels.
+        
+        Category: {request.niche}
+        Topic: {request.topic}
+        Target Region: {request.target_country}
+        
+        Rules:
+        1. Language must be Fluent, Native English tailored for {request.target_country}.
+        2. First 3 seconds MUST have a strong viral HOOK.
+        3. Simple words, high suspense, fast pace.
+
+        Format Output cleanly:
+        🔥 [VIRAL HOOK] (0-3 sec text)
+        📖 [NARRATION SCRIPT] (For voiceover - word-for-word)
+        🎬 [STOCK FOOTAGE PROMPTS] (3 detailed prompts for Pexels/Runway)
+        📌 [HIGH-CPM TITLE & HASHTAGS] (Top 5 trending hashtags in USA)
+        ⏰ [BEST POSTING TIME] (In US Eastern Time / UK Time)
+        """
+
+        response = model.generate_content(prompt)
+        script_text = response.text
+
+        # Generate Native US/UK Accent Voiceover
+        audio_filename = f"global_voice_{uuid.uuid4().hex[:8]}.mp3"
+        communicate = edge_tts.Communicate(script_text[:1200], request.accent_voice)
+        await communicate.save(audio_filename)
+
+        return {
+            "status": "success", 
+            "data": script_text,
+            "audio_url": f"/audio/{audio_filename}"
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/audio/{filename}")
+async def get_audio(filename: str):
+    if os.path.exists(filename):
+        return FileResponse(filename, media_type="audio/mpeg")
+    raise HTTPException(status_code=404, detail="Audio file not found")
