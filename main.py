@@ -141,7 +141,8 @@ async def generate_script(request: GlobalVideoRequest):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY missing in Render settings.")
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # इथे मॉडेलचे नाव स्थिर ठेवून ५०६ च्या ऐवजी योग्य 'gemini-1.5-flash-latest' जोडले आहे
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         
         prompt = f"""
         You are an expert viral content strategist targeting a worldwide high-CPM audience ({request.target_country}).
@@ -167,7 +168,7 @@ async def generate_script(request: GlobalVideoRequest):
         response = model.generate_content(prompt)
         script_text = response.text
 
-        # Generate Native US/UK Accent Voiceover
+        # परदेशी आवाजाची ऑडिओ फाईल तयार करणे
         audio_filename = f"global_voice_{uuid.uuid4().hex[:8]}.mp3"
         communicate = edge_tts.Communicate(script_text[:1200], request.accent_voice)
         await communicate.save(audio_filename)
