@@ -41,6 +41,8 @@ async def generate_script(request: ScriptRequest):
         - Language: {request.language}
         - Target Audience Region: {request.target_country}
 
+        Search for live information on {request.source} if required.
+
         Provide the output formatted with clear headers:
         📌 [TITLE & SEO TAGS] (Catchy YouTube title + 5 viral hashtags)
         ⏰ [BEST UPLOADING TIME] (Optimal posting time for {request.target_country})
@@ -50,6 +52,7 @@ async def generate_script(request: ScriptRequest):
         🎯 [CALL TO ACTION]
         """
         
+        # Using stable gemini-2.5-flash with search tool
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
@@ -59,6 +62,15 @@ async def generate_script(request: ScriptRequest):
         return {"status": "success", "data": response.text}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Fallback without search tools if grounding fails
+        try:
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+            return {"status": "success", "data": response.text}
+        except Exception as err:
+            raise HTTPException(status_code=500, detail=str(err))
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
