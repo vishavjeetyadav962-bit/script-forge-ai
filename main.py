@@ -127,7 +127,11 @@ async def generate_script(request: ScriptRequest):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not set.")
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # gemini-1.5-flash-latest किंवा gemini-pro हे दोन्ही फॉलबॅकसह चालतील
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        except:
+            model = genai.GenerativeModel('gemini-pro')
         
         prompt = f"""
         You are an advanced viral video automation assistant.
