@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from google import genai
+import google.generativeai as genai
 
 app = FastAPI()
 
@@ -16,6 +16,9 @@ app.add_middleware(
 )
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 class ScriptRequest(BaseModel):
     source: str = "Google Trends"
@@ -30,7 +33,7 @@ async def generate_script(request: ScriptRequest):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not set.")
 
     try:
-        client = genai.Client(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt = f"""
         You are an advanced viral video automation assistant.
@@ -41,9 +44,7 @@ async def generate_script(request: ScriptRequest):
         - Language: {request.language}
         - Target Audience Region: {request.target_country}
 
-        Search for live information on {request.source} if required.
-
-        Provide the output formatted with clear headers:
+        Provide the output formatted with clear headers in {request.language}:
         📌 [TITLE & SEO TAGS] (Catchy YouTube title + 5 viral hashtags)
         ⏰ [BEST UPLOADING TIME] (Optimal posting time for {request.target_country})
         🔥 [HOOK] (First 3 seconds)
@@ -52,25 +53,10 @@ async def generate_script(request: ScriptRequest):
         🎯 [CALL TO ACTION]
         """
         
-        # Using stable gemini-2.5-flash with search tool
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config={"tools": [{"google_search": {}}]}
-        )
-        
+        response = model.generate_content(prompt)
         return {"status": "success", "data": response.text}
 
     except Exception as e:
-        # Fallback without search tools if grounding fails
-        try:
-            client = genai.Client(api_key=GEMINI_API_KEY)
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            )
-            return {"status": "success", "data": response.text}
-        except Exception as err:
-            raise HTTPException(status_code=500, detail=str(err))
+        raise HTTPException(status_code=500, detail=str(e))
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
