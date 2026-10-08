@@ -18,16 +18,16 @@ app.add_middleware(
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 class ScriptRequest(BaseModel):
-    source: str = "Google Trends"  # Google Trends, Reddit, Wikipedia
+    source: str = "Google Trends"
     topic: str
-    format_type: str = "Shorts"    # Shorts (Reels) or Long-Form (Documentary)
+    format_type: str = "Shorts"
     language: str = "Marathi"
-    target_country: str = "India" # India or USA/UK
+    target_country: str = "India"
 
 @app.post("/api/generate")
 async def generate_script(request: ScriptRequest):
     if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="Gemini API Key is not set.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not set.")
 
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
@@ -41,15 +41,13 @@ async def generate_script(request: ScriptRequest):
         - Language: {request.language}
         - Target Audience Region: {request.target_country}
 
-        Perform live search on {request.source} for real-time trending info.
-
         Provide the output formatted with clear headers:
-        📌 **[TITLE & SEO TAGS]** (Catchy YouTube title + 5 viral hashtags)
-        ⏰ **[BEST UPLOADING TIME]** (Optimal posting time for {request.target_country})
-        🔥 **[HOOK]** (First 3 seconds)
-        📖 **[FULL SCRIPT / STORY]** (Structured narrative)
-        🎬 **[STOCK FOOTAGE PROMPTS]** (Detailed visual prompts for editing tools)
-        🎯 **[CALL TO ACTION]**
+        📌 [TITLE & SEO TAGS] (Catchy YouTube title + 5 viral hashtags)
+        ⏰ [BEST UPLOADING TIME] (Optimal posting time for {request.target_country})
+        🔥 [HOOK] (First 3 seconds)
+        📖 [FULL SCRIPT / STORY] (Structured narrative)
+        🎬 [STOCK FOOTAGE PROMPTS] (Detailed visual prompts for editing tools)
+        🎯 [CALL TO ACTION]
         """
         
         response = client.models.generate_content(
